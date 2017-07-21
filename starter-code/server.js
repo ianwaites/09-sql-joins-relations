@@ -66,7 +66,8 @@ app.post('/articles', function(request, response) {
       FROM authors
       `, // TODO: Write a SQL query to retrieve the author_id from the authors table for the new article
       [
-        request.body.author_id
+        request.body.author_id,
+        request.body.author
       ], // TODO: Add the author name as data for the SQL query
       function(err, result) {
         if (err) console.error(err)
@@ -78,11 +79,17 @@ app.post('/articles', function(request, response) {
   function queryThree(author_id) {
     client.query(
       `
-      INSERT INTO articles
+      INSERT INTO
+      articles(author, author_id, title, category, "publishedOn", body)
+      VALUES ($1, $2, $3, $4, $5, $6);
       `, // TODO: Write a SQL query to insert the new article using the author_id from our previous query
       [
+        request.body.author,
+        author_id,
         request.body.title,
-        request.body.author_id
+        request.body.category,
+        request.body.publishedOn,
+        request.body.body
       ], // TODO: Add the data from our new article, including the author_id, as data for the SQL query.
       function(err) {
         if (err) console.error(err);
@@ -97,16 +104,36 @@ app.put('/articles/:id', function(request, response) {
   // an author_id property, so we can reference it from the request.body.
   // TODO: Add the required values from the request as data for the SQL query to interpolate
   client.query(
-    ``,
-    []
+    `
+    UPDATE authors
+    (author, "authorUrl")
+    VALUES ($1, $2);
+    WHERE author_id=$3;
+    `,
+    [
+      request.body.author,
+      request.body.authorUrl,
+      request.body.author_id
+    ]
   )
   .then(function() {
     // TODO: Write a SQL query to update an article record. Keep in mind that article records
     // now have an author_id, in addition to title, category, publishedOn, and body.
     // TODO: Add the required values from the request as data for the SQL query to interpolate
     client.query(
-      ``,
-      []
+      `
+      UPDATE article
+      (author, author_id, title, category, "publishedOn", body)
+      VALUES ($1, $2, $3, $4, $5, $6);
+      `,
+      [
+        request.body.author,
+        request.body.author_id,
+        request.body.title,
+        request.body.category,
+        request.body.publishedOn,
+        request.body.body
+      ]
     )
   })
   .then(function() {
