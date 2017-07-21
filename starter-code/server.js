@@ -44,7 +44,7 @@ app.post('/articles', function(request, response) {
     // DONE: Add the author and "authorUrl" as data for the SQL query
     `
     INSERT INTO
-      articles(author, "authorUrl")
+      authors(author, "authorUrl")
     VALUES ($1, $2)
     ON CONFLICT DO NOTHING;
     `,
@@ -64,9 +64,10 @@ app.post('/articles', function(request, response) {
       `
       SELECT author_id
       FROM authors
+      WHERE author=$1
       `, // TODO: Write a SQL query to retrieve the author_id from the authors table for the new article
       [
-        request.body.author_id,
+        // request.body.author_id,
         request.body.author
       ], // TODO: Add the author name as data for the SQL query
       function(err, result) {
@@ -80,11 +81,10 @@ app.post('/articles', function(request, response) {
     client.query(
       `
       INSERT INTO
-      articles(author, author_id, title, category, "publishedOn", body)
-      VALUES ($1, $2, $3, $4, $5, $6);
+      articles(author_id, title, category, "publishedOn", body)
+      VALUES ($1, $2, $3, $4, $5);
       `, // TODO: Write a SQL query to insert the new article using the author_id from our previous query
       [
-        request.body.author,
         author_id,
         request.body.title,
         request.body.category,
@@ -106,8 +106,7 @@ app.put('/articles/:id', function(request, response) {
   client.query(
     `
     UPDATE authors
-    (author, "authorUrl")
-    VALUES ($1, $2);
+    SET author=$1, "authorUrl"=$2
     WHERE author_id=$3;
     `,
     [
@@ -122,17 +121,17 @@ app.put('/articles/:id', function(request, response) {
     // TODO: Add the required values from the request as data for the SQL query to interpolate
     client.query(
       `
-      UPDATE article
-      (author, author_id, title, category, "publishedOn", body)
-      VALUES ($1, $2, $3, $4, $5, $6);
+      UPDATE articles
+      SET author_id=$1, title=$2, category=$3, "publishedOn"=$4, body=$5
+      WHERE article_id=$6
       `,
       [
-        request.body.author,
         request.body.author_id,
         request.body.title,
         request.body.category,
         request.body.publishedOn,
-        request.body.body
+        request.body.body,
+        request.params.id
       ]
     )
   })
